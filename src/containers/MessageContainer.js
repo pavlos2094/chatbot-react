@@ -6,6 +6,7 @@ import SendMessageForm from "../components/SendMessageForm";
 
 class MessageContainer extends Component {
 	constructor() {
+		//Initializes state
 		super();
 		this.state = {
 			messages: [
@@ -21,8 +22,8 @@ class MessageContainer extends Component {
 		this._handleInputChange = this._handleInputChange.bind(this);
 	}
 
-	componentDidMount() {
-		//Extract features
+	componentWillMount() {
+		//Extracts features, before initial render
         const url = new URL('http://localhost:8081/features/');
         fetch(url, {
         	method: 'POST'
@@ -36,6 +37,7 @@ class MessageContainer extends Component {
 	}
 
 	render() {
+		//Renders components
 		return (
 			<div className="chat">
 				<Title />
@@ -46,6 +48,7 @@ class MessageContainer extends Component {
 	}
 
 	_handleInputChange(message) {
+		//It is called when user enters a message
 		let newQuestion = {
 			senderId: "Me",
 			text: message,
@@ -53,10 +56,11 @@ class MessageContainer extends Component {
 			index: this.state.messages.length
 		};
 		let params = {}, messageToSend;
+		//search for features inside input text
 	    this.state.features.map(feature => {
-	    	feature = '(?:^|[ ])#('.concat(feature).concat(')=([0-9]+)');
+	    	feature = '(?:^|[ ])#('.concat(feature).concat(') *= *([0-9]+(?:(?:[.]|,)?[0-9]+)?)');
 	        let re = new RegExp(feature, "gm");
-	        let str = message;
+	        let str = message.replace(/(\r\n\t|\n|\r\t)/gm,"");
 	        let m;
 	        while((m = re.exec(str)) != null) {
 	        	if (m.index === re.lastIndex) re.lastIndex++;
@@ -64,6 +68,7 @@ class MessageContainer extends Component {
 	        }
 	    });
 	    if (Object.keys(params).length === 0 && params.constructor === Object) {
+	    	//didn't find match
 	    	messageToSend = "No match found";
 	    	let newAnswer = {
 			senderId: "Prediction Robot",
@@ -76,14 +81,16 @@ class MessageContainer extends Component {
 			});
 	    }
 	    else {
+	    	//found at least one match
 	    	let url = new URL('http://localhost:8081/predict/');
           	params = JSON.stringify(params);
           	fetch(url, {
+          		//fetch prediction
             	method: 'POST',
             	body: params,
             	headers: {'Content-Type': 'application/json'}
           	}).then(response => {
-            //Parse respsone
+           		//parse response
             	var contextResponse;
             	return response.json();
             }).then(parsedResponse => {

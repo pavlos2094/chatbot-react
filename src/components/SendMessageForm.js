@@ -3,11 +3,13 @@ import React, {Component} from 'react';
 class SendMessageForm extends Component {
     
     constructor(props){
+        //for event handler
         super(props);
         this._handleInputChange = this._handleInputChange.bind(this);
     }
     componentDidMount() {
-        this.refs.textArea.addEventListener('keypress', function (e) {
+        //Event handler for enter button
+        this.refs.textArea.addEventListener('keyup', function (e) {
             if ((e.which || e.keyCode) === 13) { // 13 is enter
               this.props.onInputChange(this.refs.textArea.value);
               this.refs.textArea.value = '';
@@ -29,6 +31,7 @@ class SendMessageForm extends Component {
 	}
 
     _handleInputChange(e) {
+        //if Send button is pressed
         this.props.onInputChange(this.refs.textArea.value);
         this.refs.textArea.value = '';
     }

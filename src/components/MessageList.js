@@ -2,25 +2,17 @@ import React, {Component} from 'react';
 
 class MessageList extends Component {
 
-  componentWillMount() {
-        this.messages = this.props.messages;
-    }	
-
-  componentWillReceiveProps(nextProps) {
-  	if (this.messages !== nextProps.messages) {
-  		this.messages = nextProps.messages;
-  	}
-  }
-
   componentDidUpdate() {
+  	//Scroll history to bottom after every update 
   	this.refs.chatHistory.scrollTop = this.refs.chatHistory.scrollHeight;
   }
 
   render() {
+  	//Render each message based on whether it is from user or from "robot"
     return (
       <div ref="chatHistory" className="chat-history">
       	<ul style={{listStyleType: "none"}}>
-	        {this.messages.map(message => {
+	        {this.props.messages.map(message => {
 	        	if (message.senderId === "Me") {
 		        	return(
 		        		<li className="clearfix" key={message.index}>
