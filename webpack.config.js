@@ -2,20 +2,20 @@ var webpack = require('webpack');
 var path = require('path');
 
 module.exports = {
+  mode: "development",
   entry: "./src/index.js",
   output: {
     path: __dirname + '/dist/js/',
     publicPath: '/js/',
     filename: "bundle.js"
   },
-  mode: "development",
   module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
         include: path.join(__dirname, 'src'),
-        loader: "babel-loader",
-        options: { presets: ["@babel/env"] }
+        loader: 'react-hot-loader/webpack!babel-loader',
+        // options: { presets: ["@babel/env"] }
       },
       {
         test: /\.css$/,

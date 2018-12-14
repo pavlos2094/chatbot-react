@@ -6,7 +6,14 @@ class SendMessageForm extends Component {
         super(props);
         this._handleInputChange = this._handleInputChange.bind(this);
     }
-
+    componentDidMount() {
+        this.refs.textArea.addEventListener('keypress', function (e) {
+            if ((e.which || e.keyCode) === 13) { // 13 is enter
+              this.props.onInputChange(this.refs.textArea.value);
+              this.refs.textArea.value = '';
+            }
+        }.bind(this), false);
+    }
 	render() {
 		return (
 		<div className="chat-message clearfix">
@@ -23,6 +30,7 @@ class SendMessageForm extends Component {
 
     _handleInputChange(e) {
         this.props.onInputChange(this.refs.textArea.value);
+        this.refs.textArea.value = '';
     }
 }
 

@@ -9,36 +9,31 @@ class MessageContainer extends Component {
 		super();
 		this.state = {
 			messages: [
-		 		{
-		    		senderId: "Me",
-		    		text: "who'll win?",
-		    		time: 0
-		  		},
 		  		{
 		   			 senderId: "Prediction Robot",
-		   			 text: "who'll win?",
-		   			 time: 0
+		   			 text: "Ask anything you want",
+		   			 time: this._getCurrentTime(),
+		   			 index: 0
 		  		}
-			]
+			],
+			features: []
 		}
 		this._handleInputChange = this._handleInputChange.bind(this);
 	}
 
 	componentDidMount() {
-		//here i am gonna do my requests when starting only
+		//Extract features
+        const url = new URL('http://localhost:8081/features/');
+        fetch(url, {
+        	method: 'POST'
+        }).then(priorFeatures => {
+        	return priorFeatures.json();
+       	}).then(features => {
+       		this.setState({
+       			features: features.feat_names
+       		})
+       	});
 	}
-
-	// componentDidUpdate() {
-	// 	let newInput = {
-	// 		senderId: "Me",
-	// 		text: this.state.messageToSend
-	// 	}
-	// 	this.setState({
-	// 		// messageToSend: "",
-	// 		messages: this.state.messages.push(newInput)
-	// 	});
-
-	// }
 
 	render() {
 		return (
@@ -50,15 +45,61 @@ class MessageContainer extends Component {
 		);
 	}
 
-	_handleInputChange(messageToSend) {
-		let newInput = {
+	_handleInputChange(message) {
+		let newQuestion = {
 			senderId: "Me",
+			text: message,
+			time: this._getCurrentTime(),
+			index: this.state.messages.length
+		};
+		let params = {}, messageToSend;
+	    this.state.features.map(feature => {
+	    	feature = '(?:^|[ ])#('.concat(feature).concat(')=([0-9]+)');
+	        let re = new RegExp(feature, "gm");
+	        let str = message;
+	        let m;
+	        while((m = re.exec(str)) != null) {
+	        	if (m.index === re.lastIndex) re.lastIndex++;
+	        	params[m[1]] = m[2];
+	        }
+	    });
+	    if (Object.keys(params).length === 0 && params.constructor === Object) {
+	    	messageToSend = "No match found";
+	    	let newAnswer = {
+			senderId: "Prediction Robot",
 			text: messageToSend,
-			time: this._getCurrentTime()
-		}
-		this.setState({
-			messages: [...this.state.messages, newInput]
-		});
+			time: this._getCurrentTime(),
+			index: this.state.messages.length + 1
+			};
+			this.setState({
+				messages: [...this.state.messages, newQuestion, newAnswer]
+			});
+	    }
+	    else {
+	    	let url = new URL('http://localhost:8081/predict/');
+          	params = JSON.stringify(params);
+          	fetch(url, {
+            	method: 'POST',
+            	body: params,
+            	headers: {'Content-Type': 'application/json'}
+          	}).then(response => {
+            //Parse respsone
+            	var contextResponse;
+            	return response.json();
+            }).then(parsedResponse => {
+            	let name = Object.keys(parsedResponse)[0];
+            	messageToSend = name + " would be " + parsedResponse[name];
+            	let newAnswer = {
+					senderId: "Prediction Robot",
+					text: messageToSend,
+					time: this._getCurrentTime(),
+					index: this.state.messages.length + 1
+				};
+				this.setState({
+					messages: [...this.state.messages, newQuestion, newAnswer]
+				});
+          	});
+	    }		
 	}
 
 	_getCurrentTime() {
